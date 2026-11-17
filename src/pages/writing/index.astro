@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const posts = (await getCollection('writing'))
+  .filter((p) => import.meta.env.DEV || !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<Base title="Writing" description="Notes on reconciliation, payments and backend engineering.">
+  <section class="section" style="border-top: 0">
+    <div class="section-head">
+      <h1>Writing</h1>
+      <p class="muted">Notes on reconciliation, payments and backend engineering.</p>
+    </div>
+    {
+      posts.length > 0 ? (
+        <ul class="posts">
+          {posts.map((p) => (
+            <li>
+              <a href={p.data.externalUrl ?? `/writing/${p.id}/`}>
+                <span>{p.data.title}</span>
+                <span class="meta">{p.data.source ?? fmt(p.data.date)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="muted">First posts are on the way.</p>
+      )
+    }
+  </section>
+</Base>
