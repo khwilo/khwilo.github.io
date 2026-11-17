@@ -40,5 +40,6 @@ export const experience = [
     role: "Backend Software Engineer",
   },
   { dates: "2021", company: "Prime Devs", role: "Fullstack Software Engineer" },
+  { dates: "2020 to 2021", company: "Decoded For Devs", role: "Technical Writer" },
   { dates: "2018", company: "Dynamo Digital", role: "Software Engineer" },
 ];
