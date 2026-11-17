@@ -1,0 +1,127 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { site, experience } from '../data/site';
+
+const showDrafts = import.meta.env.DEV;
+
+// Work entries always show. An entry only links somewhere once it is published.
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+const posts = (await getCollection('writing'))
+  .filter((p) => showDrafts || !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<Base>
+  <section class="hero">
+    <p class="eyebrow">{site.eyebrow}</p>
+    <h1>{site.headline}</h1>
+    <p class="intro">{site.intro}</p>
+    <p class="current">{site.current}</p>
+    <div class="actions">
+      <a class="btn" href="#work">Explore my work</a>
+      {site.cvUrl && <a class="lnk" href={site.cvUrl}>Download CV</a>}
+    </div>
+  </section>
+
+  <section class="section" id="work">
+    <div class="section-top">
+      <div class="section-head">
+        <h2>Selected work</h2>
+        <p>Production problems, the decisions I made, and what they cost.</p>
+      </div>
+      {
+        site.showMatchStatus && (
+          <p class="status">
+            matched <strong>{work.length}/{work.length}</strong> · unmatched <strong>0</strong>
+          </p>
+        )
+      }
+    </div>
+    <ul class="work">
+      {
+        work.map((w, i) => {
+          const live = showDrafts || !w.data.draft;
+          return (
+            <li>
+              <p class="label">
+                {pad(i + 1)} · {w.data.label}
+              </p>
+              <h3>{w.data.title}</h3>
+              <p class="summary">{w.data.summary}</p>
+              {live && w.data.externalUrl ? (
+                <a class="lnk" href={w.data.externalUrl}>
+                  {w.data.externalLabel ?? 'View project'} →
+                </a>
+              ) : live && !w.data.externalLabel ? (
+                <a class="lnk" href={`/work/${w.id}/`}>Read case study →</a>
+              ) : (
+                <span class="pending">Write-up coming soon</span>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="section" id="experience">
+    <h2>Experience</h2>
+    <div class="ledger">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">PERIOD</th>
+            <th scope="col">COMPANY</th>
+            <th scope="col">ROLE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            experience.map((e) => (
+              <tr>
+                <td class="dates">{e.dates}</td>
+                <td class="company">{e.company}</td>
+                <td class="role">{e.role}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    {site.cvUrl && <a class="lnk" href={site.cvUrl}>View full CV →</a>}
+  </section>
+
+  {
+    posts.length > 0 && (
+      <section class="section" id="writing">
+        <div class="section-head">
+          <h2>Writing</h2>
+          <p>Notes on reconciliation, debugging and backend trade-offs.</p>
+        </div>
+        <ul class="posts">
+          {posts.map((p) => (
+            <li>
+              <a href={p.data.externalUrl ?? `/writing/${p.id}/`}>
+                <span>{p.data.title}</span>
+                <span class="meta">{p.data.source ?? fmt(p.data.date)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <a class="lnk" href="/writing/">All writing →</a>
+      </section>
+    )
+  }
+
+  <section class="section about" id="about">
+    <h2>A little about me</h2>
+    <p>{site.about}</p>
+  </section>
+</Base>
